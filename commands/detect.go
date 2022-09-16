@@ -103,7 +103,7 @@ func Detect(dockerCli command.Cli, image string, workspace string, apiKey string
 				bi[ix] = e
 			}
 			s.Stop()
-			fmt.Printf("Base image for %s\n%s\n\n", label, strings.Join(bi, "\n"))
+			fmt.Printf("Base image for %s\n%s\n\n", label, strings.Join(bi, "\n\n"))
 		}
 	}
 	return nil
