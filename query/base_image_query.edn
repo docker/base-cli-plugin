@@ -1,0 +1,52 @@
+;; Copyright © 2022 Docker, Inc.
+;;
+;; Licensed under the Apache License, Version 2.0 (the "License");
+;; you may not use this file except in compliance with the License.
+;; You may obtain a copy of the License at
+;;
+;;     http://www.apache.org/licenses/LICENSE-2.0
+;;
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;; See the License for the specific language governing permissions and
+;; limitations under the License.
+
+[:find
+ ?image
+ :in $ $before-db %% ?ctx
+ :where
+ [(ground "%s") ?digest]
+ [(adb/query (quote [:find
+                     (pull ?docker-image [:atomist/team-id
+                                          :docker.image/digest
+                                          :docker.image/tags
+                                          :docker.image/created-at
+                                          {:docker.image/file [:git.file/path]}
+                                          {:docker.image/commit [:git.commit/sha
+                                                                 {:git.commit/repo [:git.repo/name
+                                                                                    {:git.repo/org [:git.org/name]}]}]}
+                                          {(:docker.tag/_image :as :docker.image/tag) [:docker.tag/name]}
+                                          {(:docker.manifest-list/_images :as :docker.image/manifest-list) [:docker.manifest-list/digest
+                                                                                                            {(:docker.tag/_manifest-list :as :docker.manifest-list/tag) [:docker.tag/name]}]}
+                                          {(:vulnerability.report/_package :as :vulnerability.report/report) [:vulnerability.report/critical
+                                                                                                              :vulnerability.report/high
+                                                                                                              :vulnerability.report/medium
+                                                                                                              :vulnerability.report/low
+                                                                                                              :vulnerability.report/unspecified
+                                                                                                              :vulnerability.report/total]}
+                                          {:docker.image/repository [:docker.repository/host
+                                                                     :docker.repository/badge
+                                                                     :docker.repository/supported-tags
+                                                                     (:docker.repository/repository :as :docker.repository/name)]}])
+                     :in $ $b %% ?ctx [?digest]
+                     :where
+                     (or-join [?digest ?docker-image]
+                       [?docker-image :docker.image/blob-digest ?digest]
+                       [?docker-image :docker.image/diff-chain-id ?digest])
+                     ])
+    ?digest)
+  ?results]
+ [(untuple ?results) [?result ...]]
+ [(untuple ?result) [?image]]
+ ]
