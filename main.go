@@ -95,7 +95,7 @@ func main() {
 
 		cmd := &cobra.Command{
 			Use:   "base",
-			Short: "Identify base image",
+			Short: "Identify base images",
 		}
 
 		cmd.AddCommand(login, logout, base)
