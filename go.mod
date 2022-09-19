@@ -7,6 +7,7 @@ require (
 	github.com/docker/cli v20.10.17+incompatible
 	github.com/fatih/color v1.13.0
 	github.com/google/go-containerregistry v0.5.1
+	github.com/moby/term v0.0.0-20220808134915-39b0c02b01ae
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799
 	github.com/pkg/errors v0.9.1
@@ -40,7 +41,6 @@ require (
 	github.com/miekg/pkcs11 v1.0.3 // indirect
 	github.com/moby/sys/mount v0.3.3 // indirect
 	github.com/moby/sys/mountinfo v0.6.2 // indirect
-	github.com/moby/term v0.0.0-20220808134915-39b0c02b01ae // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.7.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
