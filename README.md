@@ -38,23 +38,29 @@ Alternatively, you can install manually by following these steps:
 To detect base images for local or remote images, use the following command:
 
 ```shell
-$ docker base detect <image>
+$ docker base detect <IMAGE>
 ```
 
-`<image>` can either be a local image id or fully qualified image name from a remote registry.
+`<IMAGE>` can either be a local image id or fully qualified image name from a remote registry.
 
 ### `docker base login`
 
 To authenticate with the Atomist data plane, use the following command:
 
 ```shell
-$ docker base login --workspace <workspace id> --api-key <api key>
+$ docker base login <WORKSPACE ID>
 ```
 
-Authentication is not required. If not authenticated, the plugin will only use public data from Docker Official Images,
-Docker Verified Publishers or Docker-sponsored Open Source.
+For the security reasons the command does not accept an API key as command parameter. Instead, an API key can be passed
+in via stdin with the parameter `--api-key-stdin`.
 
-Visit [dso.docker.com](https://dso.docker.com/r/auth/integrations) to obtain a `workspace id` and `api key`.
+The `login` command will also check the legacy `ATOMIST_API_KEY` environment variable.
+
+Authentication is not required. If not authenticated, the plugin will only use public data from Docker Official Images,
+Docker Verified Publishers or Docker-sponsored Open Source. Without authentication the `detect` command will not take
+into account your own data on Docker Hub when searching for matching base images. 
+
+Visit [dso.docker.com](https://dso.docker.com/r/auth/integrations) to obtain a `WORKSPACE ID` and `API KEY`.
 
 ### `docker base logout`
 
