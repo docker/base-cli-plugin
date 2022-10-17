@@ -60,10 +60,12 @@ func Detect(dockerCli command.Cli, image string, workspace string, apiKey string
 		chainId := identity.ChainID(chainIds)
 		s.Suffix = fmt.Sprintf(" Finding matching base images for %s", label)
 		s.Restart()
-		images, err := query.ForBaseImage(chainId, workspace, apiKey)
-
-		if err != nil {
-			return err
+		images, err := query.ForBaseImageInDb(chainId, workspace, apiKey)
+		if err != nil || images == nil {
+			images, err = query.ForBaseImageInIndex(chainId, workspace, apiKey)
+			if err != nil {
+				return err
+			}
 		}
 		if images != nil {
 			bi := make([]string, len(*images))
@@ -199,5 +201,5 @@ func renderVulnerabilities(image query.Image) string {
 			return strings.Join(parts, " ") + " "
 		}
 	}
-	return ""
+	return " no CVE data available "
 }

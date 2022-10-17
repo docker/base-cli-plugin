@@ -1,0 +1,27 @@
+version: '3'
+
+tasks:
+  go:build:
+    cmds:
+      - go build -ldflags="-w -s -X 'github.com/docker/base-cli-plugin/internal.version={{.GIT_COMMIT}}'"
+    env:
+      CGO_ENABLED: 0
+    vars:
+      GIT_COMMIT:
+        sh: git describe --tags | cut -c 2-
+
+  go:install:
+    deps: [go:build]
+    cmds:
+      - mkdir -p ~/.docker/cli-plugins
+      - install base-cli-plugin ~/.docker/cli-plugins/docker-base
+
+  go:fmt:
+    cmds:
+      - goimports -w .
+      - gofmt -w .
+      - go mod tidy
+
+  go:release:
+    cmds:
+      - goreleaser release --rm-dist

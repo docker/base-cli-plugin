@@ -43,6 +43,13 @@ type Report struct {
 	Unspecified int64 `edn:"vulnerability.report/unspecified"`
 }
 
+type Repository struct {
+	Badge         string   `edn:"docker.repository/badge"`
+	Host          string   `edn:"docker.repository/host"`
+	Name          string   `edn:"docker.repository/name"`
+	SupportedTags []string `edn:"docker.repository/supported-tags"`
+}
+
 type Image struct {
 	TeamId    string    `edn:"atomist/team-id"`
 	Digest    string    `edn:"docker.image/digest"`
@@ -52,13 +59,8 @@ type Image struct {
 		Name string `edn:"docker.tag/name"`
 	} `edn:"docker.image/tag"`
 	ManifestList []ManifestList `edn:"docker.image/manifest-list"`
-	Repository   struct {
-		Badge         string   `edn:"docker.repository/badge"`
-		Host          string   `edn:"docker.repository/host"`
-		Name          string   `edn:"docker.repository/name"`
-		SupportedTags []string `edn:"docker.repository/supported-tags"`
-	} `edn:"docker.image/repository"`
-	File struct {
+	Repository   Repository     `edn:"docker.image/repository"`
+	File         struct {
 		Path string `edn:"git.file/path"`
 	} `edn:"docker.image/file"`
 	Commit struct {
@@ -73,16 +75,25 @@ type Image struct {
 	Report []Report `edn:"vulnerability.report/report"`
 }
 
-type QueryResult struct {
+type ImageQueryResult struct {
 	Query struct {
 		Data [][]Image `edn:"data"`
+	} `edn:"query"`
+}
+
+type RepositoryQueryResult struct {
+	Query struct {
+		Data [][]Repository `edn:"data"`
 	} `edn:"query"`
 }
 
 //go:embed base_image_query.edn
 var baseImageQuery string
 
-//go:embed enabled_skills.edn
+//go:embed repository_query.edn
+var repositoryQuery string
+
+//go:embed enabled_skills_query.edn
 var enabledSkillsQuery string
 
 func CheckAuth(workspace string, apiKey string) bool {
@@ -93,12 +104,12 @@ func CheckAuth(workspace string, apiKey string) bool {
 	return true
 }
 
-// ForBaseImage returns images with matching digest in :docker.image/blob-digest or :docker.image/diff-chain-id
-func ForBaseImage(digest digest.Digest, workspace string, apiKey string) (*[]Image, error) {
+// ForBaseImageInDb returns images with matching digest in :docker.image/blob-digest or :docker.image/diff-chain-id
+func ForBaseImageInDb(digest digest.Digest, workspace string, apiKey string) (*[]Image, error) {
 	resp, err := query(fmt.Sprintf(baseImageQuery, digest), workspace, apiKey)
 
 	if workspace == "" || apiKey == "" {
-		var result QueryResult
+		var result ImageQueryResult
 		err = edn.NewDecoder(resp.Body).Decode(&result)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to unmarshal response")
@@ -120,7 +131,7 @@ func ForBaseImage(digest digest.Digest, workspace string, apiKey string) (*[]Ima
 			for _, img := range images {
 				tba := true
 				for j := range image {
-					if image[j].Digest == img[0].Digest && img[0].TeamId == "A0GLG1QQA" {
+					if image[j].Digest == img[0].Digest && img[0].TeamId == "A11PU8L1C" {
 						image[j] = img[0]
 						tba = false
 						break
@@ -138,10 +149,38 @@ func ForBaseImage(digest digest.Digest, workspace string, apiKey string) (*[]Ima
 	}
 }
 
-func query(query string, workspace string, apiKey string) (*http.Response, error) {
-	url := "https://api.atomist.com/datalog/team/" + workspace
+func ForRepositoryInDb(repo string, workspace string, apiKey string) (*Repository, error) {
+	resp, err := query(fmt.Sprintf(repositoryQuery, repo), workspace, apiKey)
+
 	if workspace == "" || apiKey == "" {
-		url = "https://api.atomist.com/datalog/shared-vulnerability/queries"
+		var result RepositoryQueryResult
+		err = edn.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to unmarshal response")
+		}
+		if len(result.Query.Data) > 0 {
+			return &result.Query.Data[0][0], nil
+		} else {
+			return nil, nil
+		}
+	} else {
+		var repositories [][]Repository
+		err = edn.NewDecoder(resp.Body).Decode(&repositories)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to unmarshal response")
+		}
+		if len(repositories) > 0 {
+			return &repositories[0][0], nil
+		} else {
+			return nil, nil
+		}
+	}
+}
+
+func query(query string, workspace string, apiKey string) (*http.Response, error) {
+	url := "https://api.dso.docker.com/datalog/team/" + workspace
+	if workspace == "" || apiKey == "" {
+		url = "https://api.dso.docker.com/datalog/shared-vulnerability/queries"
 		query = fmt.Sprintf(`{:queries [{:name "query" :query %s}]}`, query)
 	} else {
 		query = fmt.Sprintf(`{:query %s}`, query)
