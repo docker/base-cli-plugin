@@ -48,7 +48,7 @@ func DigestForImage(dockerCli command.Cli, image string) ([]digest.Digest, error
 	}
 
 	// check local daemon first
-	img, err := daemon.Image(ref)
+	img, err := daemon.Image(ref, daemon.WithClient(dockerCli.Client()))
 	if err != nil {
 		// image doesn't exist in daemon; try remote
 		index, _ := remote.Index(ref, remote.WithAuthFromKeychain(authn.DefaultKeychain))

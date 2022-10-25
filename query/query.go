@@ -36,6 +36,7 @@ type ManifestList struct {
 }
 
 type Report struct {
+	Total       int64 `edn:"vulnerability.report/total"`
 	Critical    int64 `edn:"vulnerability.report/critical"`
 	High        int64 `edn:"vulnerability.report/high"`
 	Medium      int64 `edn:"vulnerability.report/medium"`

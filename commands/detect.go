@@ -184,6 +184,9 @@ func renderCommit(image query.Image) string {
 func renderVulnerabilities(image query.Image) string {
 	if len(image.Report) > 0 {
 		report := image.Report[0]
+		if report.Total == -1 {
+			return " no CVE data available "
+		}
 		parts := make([]string, 0)
 		if report.Critical > 0 {
 			parts = append(parts, " C"+strconv.FormatInt(report.Critical, 10))
@@ -201,5 +204,5 @@ func renderVulnerabilities(image query.Image) string {
 			return strings.Join(parts, " ") + " "
 		}
 	}
-	return " no CVE data available "
+	return ""
 }

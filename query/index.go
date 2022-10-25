@@ -85,6 +85,9 @@ func ForBaseImageInIndex(digest digest.Digest, workspace string, apiKey string) 
 			CreatedAt:  ii.CreatedAt,
 			Tags:       manifestList[0].Tags,
 			Repository: *repository,
+			Report: []Report{{
+				Total: -1,
+			}},
 		}
 		return &[]Image{image}, nil
 	}
